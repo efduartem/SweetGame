@@ -1,24 +1,20 @@
 $(function(){
-  animateTitle();
+  //animateTitle();
   boardLoad();
-  $("div[class^='col'] img").click(
+  $(".btn-reinicio").click(
     function(){
-      this.remove();
-      //console.log("Click: "+);
+      if($(this).text()=="Iniciar"){
+        $(this).text("Reiniciar");
+      }else{
+        location.reload();
+      };
+      startTimer();
     }
   );
   removeSweetsInlineHorizontal();
-
+  removeSweetsInlineVertical();
+  removeSweetsFromBoard(boardLoad);
   $("body").click(
-    function(){
-      $(sweetElementsToRemove).each(function( index ) {
-        // console.log( index + ": " + $(this));
-        $(this).effect("pulsate", 1000, function(){
-            //$(this).remove();
-            // console.log(this);
-        });
-      });
-    }
   );
 });
 
@@ -33,9 +29,16 @@ function boardLoad(){
   var sweetNumber;
   for (var i = 1; i <= 7; i++) {
     for (var j = 0; j < 7;j++) {
-      sweetNumber = getRandomSweetNumber();
       colElement = $(".col-"+i);
-      colElement.append("<img class='elemento' src='image/"+sweetNumber+".png' alt='sweet' data-sweet-number='"+sweetNumber+"'>");
+      // console.log($(colElement).children().last());
+      for (var k = 0; k < (7-$(colElement).children().length); k++) {
+          sweetNumber = getRandomSweetNumber();
+          if($(colElement).children().length > 0){
+            $($(colElement).children().first()).before("<img class='elemento' src='image/"+sweetNumber+".png' alt='sweet' data-sweet-number='"+sweetNumber+"'>");
+          }else{
+              colElement.append("<img class='elemento' src='image/"+sweetNumber+".png' alt='sweet' data-sweet-number='"+sweetNumber+"'>");
+          }
+      }
     }
   }
 }
@@ -47,11 +50,29 @@ function getRandomSweetNumber(){
 var sweetElementsToRemove = [];
 
 function removeSweetsInlineVertical(){
-  for (var i = 1; i <= 7; i++) {
-    for (var j = 0; j < 7;j++) {
-      colElement = $(".col-"+i);
-    }
-  }
+  var col, previous, previousElement, current, sweetElementsToRemoveTemp;
+  $("div[class^='col']").each(
+    function( index ) {
+      col = $(this).children();
+      previous = $(col[0]).attr("data-sweet-number");
+      previousElement = $(col[0]);
+      sweetElementsToRemoveTemp = [];
+      for (var i = 1; i <= col.length; i++) {
+        current = $(col[i]).attr("data-sweet-number");
+        if(previous == current){
+          sweetElementsToRemoveTemp.push(previousElement);
+        }else{
+          sweetElementsToRemoveTemp.push(previousElement);
+          if(sweetElementsToRemoveTemp.length >= 3){
+            // console.log(sweetElementsToRemoveTemp);
+            $.merge(sweetElementsToRemove, sweetElementsToRemoveTemp);
+          }
+          sweetElementsToRemoveTemp = [];
+        }
+        previous = current;
+        previousElement = $(col[i]);
+      }
+    });
 }
 
 function removeSweetsInlineHorizontal(){
@@ -77,4 +98,46 @@ function removeSweetsInlineHorizontal(){
       previousElement = $(row[i]);
     }
   }
+}
+
+function removeSweetsFromBoard(boardLoad){
+  $(sweetElementsToRemove).each(function( index ) {
+    // console.log( index + ": " + $(this));
+    $(this).effect("pulsate", 1000, function(){
+        $("#score-text").text(Number($("#score-text").text())+10);
+        $(this).remove();
+    });
+  });
+  sweetElementsToRemove = [];
+  setTimeout(function(){boardLoad();}, 1800);
+}
+
+function finishedGame(){
+  $('.panel-tablero').hide(1000);
+  $('.time').hide(1000);
+  $('.panel-score').animate({width:"100%"},{duration:1200});
+  setTimeout(function(){
+    $('.finish-game').show(1000);
+  }, 1000);
+}
+
+function startTimer() {
+  var presentTime = document.getElementById('timer').innerHTML;
+  var timeArray = presentTime.split(/[:]+/);
+  var m = timeArray[0];
+  var s = checkSecond((timeArray[1] - 1));
+  if(s==59){m=m-1}
+  if(m<0){
+    finishedGame();
+  }else{
+    document.getElementById('timer').innerHTML = m + ":" + s;
+    setTimeout(startTimer, 1000);
+  }
+
+}
+
+function checkSecond(sec) {
+  if (sec < 10 && sec >= 0) {sec = "0" + sec}; // add zero in front of numbers < 10
+  if (sec < 0) {sec = "59"};
+  return sec;
 }

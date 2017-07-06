@@ -96,11 +96,22 @@ div[class^='col']{
   flex-flow: column wrap;
   justify-content: flex-end;
   align-items: center;
-
 }
 
 .elemento{
   width: 99.4px;
   height: 96px;
 
+}
+
+.finish-game{
+  display: none;
+}
+
+.finish-game-titulo{
+  text-align: center;
+  font-family: gameFont;
+  font-size: 3em;
+  color: #DCFF0E;
+  width: 100%;
 }
