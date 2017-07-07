@@ -1,6 +1,6 @@
 $(function(){
   animateTitle();
-  boardLoad(makeDraggable);
+  boardLoad();
   $(".btn-reinicio").click(
     function(){
       if($(this).text()=="Iniciar"){
@@ -15,46 +15,6 @@ $(function(){
     }
   );
 });
-
-function makeDraggable(){
-  $(".elemento").draggable({
-    start: function(){
-      $(this)
-        .off("click")
-        .css("z-index","2")
-    },
-    stop: function(){
-      $(this).css({"left":0, "top":0});
-    }
-  });
-
-  $(".elemento").droppable({
-    accept: ".elemento",
-    drop: function(event, ui){
-      event.preventDefault();
-        $("#movimientos-text").text(Number($("#movimientos-text").text())+1);
-      var a = $(ui.draggable)[0];
-
-      var b = $(this)[0];
-      if($(a).nextAll().length == 6){
-        var aNext = $(a).next();
-        var bNext = $(b).next();
-
-        $(aNext).before($(b));
-        $(bNext).before($(a));
-      }else{
-        var aPrev = $(a).prev();
-        var bPrev = $(b).prev();
-
-        $(aPrev).after($(b));
-        $(bPrev).after($(a));
-      }
-      removeSweetsInlineHorizontal();
-      removeSweetsInlineVertical();
-      removeSweetsFromBoard(boardLoad);
-    }
-  })
-}
 
 function animateTitle() {
     $('.main-titulo').animate({ color: '#FFFFFF' }, { duration: 1000 })
@@ -79,17 +39,83 @@ function boardLoad(){
   }
   if($(".btn-reinicio").text()=="Reiniciar"
     && !$(".finish-game").is(":visible")){
-      removeSweetsInlineHorizontal();
-      removeSweetsInlineVertical();
-      removeSweetsFromBoard(boardLoad);
+        removeSweetsInlineHorizontal();
+        removeSweetsInlineVertical();
+        removeSweetsFromBoard(boardLoad);
   }
-  makeDraggable();
+  if($(".btn-reinicio").text()=="Reiniciar"){
+      makeDraggable();
+  }
 }
 
 function getRandomSweetNumber(){
  return Math.floor((Math.random() * 4) + 1);
 }
 
+function makeDraggable(){
+  $(".elemento").draggable({
+    start: function(){
+      $(this)
+        .off("click")
+        .css("z-index","2")
+    },
+    stop: function(){
+      $(this).css({"left":0, "top":0});
+    }
+  });
+
+  $(".elemento").droppable({
+    accept: ".elemento",
+    drop: function(event, ui){
+      event.preventDefault();
+        $("#movimientos-text").text(Number($("#movimientos-text").text())+1);
+      var a = $(ui.draggable)[0];
+      var b = $(this)[0];
+      var aParentDiv = $(a).parent();
+      var bParentDiv = $(b).parent();
+
+      if($(a).index() > 0 && $(b).index() > 0){
+             var aPrev = $(a).prev();
+             var bPrev = $(b).prev();
+
+             $(aPrev).after($(b));
+             $(bPrev).after($(a));
+      }else if($(b).index() == 0 && $(a).index() == 0){
+          var aNext = $(a).next();
+          var bNext = $(b).next();
+
+          $(aNext).before($(b));
+          $(bNext).before($(a));
+      }else if($(a).index() == 0 && $(a).index()+1 == $(b).index()
+            && $(aParentDiv).index() == $(bParentDiv).index()){
+          $(b).after($(a));
+      }else if($(b).index() == 0 && $(b).index()+1 == $(a).index()
+            && $(aParentDiv).index() == $(bParentDiv).index()){
+          $(a).after($(b));
+      }else{
+        if($(b).index() == 0){
+          var aPrev = $(a).prev();
+          var bNext = $(b).next();
+
+          $(aPrev).after($(b));
+          $(bNext).before($(a));
+        }else if($(a).index() == 0){
+          var aNext = $(a).next();
+          var bPrev = $(b).prev();
+
+          $(bPrev).after($(a));
+          $(aNext).before($(b));
+        }
+      }
+
+      removeSweetsInlineHorizontal();
+      removeSweetsInlineVertical();
+      removeSweetsFromBoard(boardLoad);
+    }
+  })
+}
+
+/* REMOVE SWEETS */
 var sweetElementsToRemove = [];
 
 function removeSweetsInlineVertical(){
@@ -149,8 +175,10 @@ function removeSweetsFromBoard(boardLoad){
     });
   });
   sweetElementsToRemove = [];
-  setTimeout(function(){boardLoad();}, 1800);
+  setTimeout(function(){boardLoad();}, 1500);
 }
+
+/* FINISH GAME ANIMATION */
 
 function finishedGame(){
   $('.panel-tablero').hide(1000);
@@ -160,6 +188,8 @@ function finishedGame(){
     $('.finish-game').show(1000);
   }, 1000);
 }
+
+/*  TIMER */
 
 function startTimer() {
   var presentTime = document.getElementById('timer').innerHTML;
