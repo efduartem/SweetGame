@@ -1,26 +1,63 @@
 $(function(){
-  //animateTitle();
-  boardLoad();
+  animateTitle();
+  boardLoad(makeDraggable);
   $(".btn-reinicio").click(
     function(){
       if($(this).text()=="Iniciar"){
         $(this).text("Reiniciar");
+        removeSweetsInlineHorizontal();
+        removeSweetsInlineVertical();
+        removeSweetsFromBoard(boardLoad);
       }else{
         location.reload();
       };
       startTimer();
     }
   );
-  removeSweetsInlineHorizontal();
-  removeSweetsInlineVertical();
-  removeSweetsFromBoard(boardLoad);
-  $("body").click(
-  );
 });
 
+function makeDraggable(){
+  $(".elemento").draggable({
+    start: function(){
+      $(this)
+        .off("click")
+        .css("z-index","2")
+    },
+    stop: function(){
+      $(this).css({"left":0, "top":0});
+    }
+  });
+
+  $(".elemento").droppable({
+    accept: ".elemento",
+    drop: function(event, ui){
+      event.preventDefault();
+        $("#movimientos-text").text(Number($("#movimientos-text").text())+1);
+      var a = $(ui.draggable)[0];
+
+      var b = $(this)[0];
+      if($(a).nextAll().length == 6){
+        var aNext = $(a).next();
+        var bNext = $(b).next();
+
+        $(aNext).before($(b));
+        $(bNext).before($(a));
+      }else{
+        var aPrev = $(a).prev();
+        var bPrev = $(b).prev();
+
+        $(aPrev).after($(b));
+        $(bPrev).after($(a));
+      }
+      removeSweetsInlineHorizontal();
+      removeSweetsInlineVertical();
+      removeSweetsFromBoard(boardLoad);
+    }
+  })
+}
 
 function animateTitle() {
-    $('h1').animate({ color: '#FFFFFF' }, { duration: 1000 })
+    $('.main-titulo').animate({ color: '#FFFFFF' }, { duration: 1000 })
            .animate({ color: '#DCFF0E' }, { duration: 1000, complete: animateTitle });
 }
 
@@ -30,7 +67,6 @@ function boardLoad(){
   for (var i = 1; i <= 7; i++) {
     for (var j = 0; j < 7;j++) {
       colElement = $(".col-"+i);
-      // console.log($(colElement).children().last());
       for (var k = 0; k < (7-$(colElement).children().length); k++) {
           sweetNumber = getRandomSweetNumber();
           if($(colElement).children().length > 0){
@@ -41,6 +77,13 @@ function boardLoad(){
       }
     }
   }
+  if($(".btn-reinicio").text()=="Reiniciar"
+    && !$(".finish-game").is(":visible")){
+      removeSweetsInlineHorizontal();
+      removeSweetsInlineVertical();
+      removeSweetsFromBoard(boardLoad);
+  }
+  makeDraggable();
 }
 
 function getRandomSweetNumber(){
@@ -64,7 +107,6 @@ function removeSweetsInlineVertical(){
         }else{
           sweetElementsToRemoveTemp.push(previousElement);
           if(sweetElementsToRemoveTemp.length >= 3){
-            // console.log(sweetElementsToRemoveTemp);
             $.merge(sweetElementsToRemove, sweetElementsToRemoveTemp);
           }
           sweetElementsToRemoveTemp = [];
@@ -89,7 +131,6 @@ function removeSweetsInlineHorizontal(){
       }else{
         sweetElementsToRemoveTemp.push(previousElement);
         if(sweetElementsToRemoveTemp.length >= 3){
-          // console.log(sweetElementsToRemoveTemp);
           $.merge(sweetElementsToRemove, sweetElementsToRemoveTemp);
         }
         sweetElementsToRemoveTemp = [];
@@ -102,7 +143,6 @@ function removeSweetsInlineHorizontal(){
 
 function removeSweetsFromBoard(boardLoad){
   $(sweetElementsToRemove).each(function( index ) {
-    // console.log( index + ": " + $(this));
     $(this).effect("pulsate", 1000, function(){
         $("#score-text").text(Number($("#score-text").text())+10);
         $(this).remove();
